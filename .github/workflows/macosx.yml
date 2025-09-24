@@ -8,19 +8,28 @@ on:
 jobs:
   build:
     runs-on: macos-13
-    steps:
-      - uses: actions/checkout@v4
-        with: { submodules: recursive }
 
+    steps:
+      # Pobiera repo wraz z submodule JUCE
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      # Instalacja narzędzi build
       - name: Install deps
         run: brew install cmake ninja
 
+      # Konfiguracja CMake
       - name: Configure
         run: cmake -B build -S . -G Ninja -DCMAKE_BUILD_TYPE=Release
 
+      # Kompilacja
       - name: Build
         run: cmake --build build --config Release
 
+      # Zbieranie wyników
       - name: Collect artifacts
         run: |
           mkdir -p out
@@ -28,6 +37,7 @@ jobs:
           find build -name "*.component" -exec cp -R {} out/ \;
           ls -R out
 
+      # Publikacja artefaktów do pobrania
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
