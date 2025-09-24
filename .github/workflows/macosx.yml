@@ -1,0 +1,35 @@
+name: Build AU/VST3
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: macos-13
+    steps:
+      - uses: actions/checkout@v4
+        with: { submodules: recursive }
+
+      - name: Install deps
+        run: brew install cmake ninja
+
+      - name: Configure
+        run: cmake -B build -S . -G Ninja -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build --config Release
+
+      - name: Collect artifacts
+        run: |
+          mkdir -p out
+          find build -name "*.vst3" -exec cp -R {} out/ \;
+          find build -name "*.component" -exec cp -R {} out/ \;
+          ls -R out
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: MultibandSC
+          path: out
